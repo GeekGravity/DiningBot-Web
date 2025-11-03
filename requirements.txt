@@ -2,3 +2,5 @@ fastapi
 uvicorn
 supabase
 python-dotenv
+load_dotenv
+python-multipart
