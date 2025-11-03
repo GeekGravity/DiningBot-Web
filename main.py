@@ -123,3 +123,30 @@ def unsubscribe(token: str):
     <a href="/" style="color:#007BFF;">Resubscribe</a>
     </body></html>
     """
+@app.post("/subscribe", response_class=HTMLResponse)
+def subscribe(email: str = Form(...)):
+    email = email.strip().lower()
+
+    if not basic_valid(email):
+        return """
+        <html><body style="text-align:center; font-family:sans-serif; padding:40px;">
+        <h3 style="color:red;">Invalid email address.</h3>
+        <a href="/" style="color:#007BFF;">Go back</a>
+        </body></html>
+        """
+
+    t = token_hex(16)
+
+    supabase.table("subscribers").upsert({
+        "email": email,
+        "token": t,
+        "active": True
+    }).execute()
+
+    return """
+    <html><body style="text-align:center; font-family:sans-serif; padding:40px;">
+    <h3 style="color:green;">Subscription successful!</h3>
+    <p>You will begin receiving daily menus.</p>
+    <a href="/" style="color:#007BFF;">Back to home</a>
+    </body></html>
+    """
