@@ -1,6 +1,7 @@
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
+from fastapi.responses import RedirectResponse
 from secrets import token_hex
 from supabase import create_client
 import os
@@ -24,90 +25,105 @@ def basic_valid(email: str) -> bool:
 @app.get("/", response_class=HTMLResponse)
 def subscribe_page():
     return """
-    <html>
-      <head>
-        <title>Subscribe to SFU Dining Bot</title>
-        <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            background-image: url('/static/backgoun.png'); /* 🔁 Replace with your background */
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>DiningBot Daily</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <style>
+        html,body{height:100%;}
+        .glass {
+          background: rgba(0,0,0,0.35);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255,255,255,0.15);
+          box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+        }
+        .hero-bg {
+          background-image: url('/static/dining_hall.jpg');
+          background-size: cover;
+          background-position: center;
+        }
+        .fade {
+          transition: opacity .4s ease;
+        }
+      </style>
+    </head>
+    <body class="hero-bg relative min-h-screen w-full flex items-center justify-center font-[system-ui,Inter,-apple-system,BlinkMacSystemFont] text-white">
+      <div class="absolute inset-0 bg-black/45"></div>
 
-          .overlay {
-            background-color: rgba(255, 255, 255, 0.85); /* Dark red overlay */
-            border-radius: 12px;
-            padding: 40px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            text-align: center;
-            color: #8B0000;
-          }
+      <div id="card" class="glass relative w-[90%] max-w-sm rounded-3xl p-8 transition-transform duration-200 hover:scale-[1.02] z-10">
+        
+        <!-- CONTENT WRAPPER (we will replace this on success) -->
+        <div id="cardContent" class="fade opacity-100">
+          <h1 class="text-3xl font-semibold text-center mb-3">SFU Daily Menu</h1>
+          <p class="text-center text-sm text-white/80 mb-6">
+            Wake up to the menu. Every morning. In your email.
+          </p>
 
-          h2 {
-            margin-bottom: 20px;
-            color: #8B0000;
-          }
-
-          input[type="email"] {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: none;
-            margin-bottom: 16px;
-            font-size: 16px;
-            background-color: #fff;
-            color: #000;
-          }
-
-          input::placeholder {
-            color: #777;
-          }
-
-          button {
-            padding: 12px 24px;
-            background-color: #ffffff;
-            color: #8B0000;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background-color 0.2s ease, color 0.2s ease;
-          }
-
-          button:hover {
-            background-color: #f2f2f2;
-            color: #660000;
-          }
-
-          p {
-            color: #8B0000;
-            margin-top: 20px;
-            font-size: 14px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="overlay">
-          <h2>Subscribe to SFU Dining Bot</h2>
-          <form action="/subscribe" method="post">
-            <input type="email" name="email" placeholder="Enter your email" required>
-            <button type="submit">Subscribe</button>
+          <form id="subForm" class="flex flex-col space-y-3">
+            <input
+              type="email"
+              name="email"
+              required
+              placeholder="you@email.com"
+              class="rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-300/30"
+            />
+            <button
+              type="submit"
+              class="bg-white/90 text-black rounded-xl py-3 text-sm font-medium hover:bg-white transition"
+            >
+              Subscribe
+            </button>
           </form>
-          <p>You will receive the daily menu every morning.</p>
         </div>
-      </body>
-    </html>
+        <!-- END WRAPPER -->
+
+      </div>
+
+      <script>
+        const form = document.getElementById("subForm");
+        const cardContent = document.getElementById("cardContent");
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(form);
+          const email = formData.get("email");
+
+          // fade out
+          cardContent.style.opacity = 0;
+
+          const res = await fetch("/subscribe", {
+            method: "POST",
+            body: new URLSearchParams({ email })
+          });
+
+          if (res.ok) {
+            setTimeout(() => {
+              cardContent.innerHTML = `
+                <h1 class="text-3xl font-semibold text-center mb-4">Thank you! 🎉</h1>
+                <p class="text-center text-white/80 text-sm leading-relaxed">
+                  You're now subscribed to SFU's Daily Dining Menu.
+                  Tomorrow morning you'll wake up to the SFU Dining Hall menu in your inbox.
+                </p>
+              `;
+              // fade back in
+              cardContent.style.opacity = 1;
+            }, 400); // match transition timing
+          } else {
+            alert("Something went wrong. Try again.");
+            cardContent.style.opacity = 1;
+          }
+        });
+      </script>
+
+    </body>
+  </html>
+
+
+
     """
 
 
