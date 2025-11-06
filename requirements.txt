@@ -4,3 +4,4 @@ supabase
 python-dotenv
 load_dotenv
 python-multipart
+pydantic
