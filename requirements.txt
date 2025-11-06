@@ -1,7 +1,8 @@
-fastapi
-uvicorn
-supabase
-python-dotenv
-load_dotenv
-python-multipart
-pydantic
+aiofiles
+email-validator==2.3.0
+fastapi==0.120.4
+pydantic==2.12.3
+python-dotenv==1.2.1
+python-multipart==0.0.20
+supabase==2.23.0
+uvicorn==0.38.0
