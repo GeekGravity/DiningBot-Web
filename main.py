@@ -32,6 +32,43 @@ def is_valid_email(email: str) -> bool:
     except ValidationError:
         return False
 
+# Design page
+def wrap_page(inner: str, title: str = "DiningBot"):
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>{title}</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <style>
+        html,body{{height:100%; background-color:#000;}}
+        .glass {{
+          background: rgba(0,0,0,0.35);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255,255,255,0.15);
+          box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+        }}
+        .hero-bg {{
+          background-image: url('/static/dining_hall.jpg');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          min-height: 100%;
+          background-color: #000;
+        }}
+      </style>
+    </head>
+    <body class="hero-bg relative min-h-screen w-full flex items-center justify-center font-[system-ui,Inter,-apple-system,BlinkMacSystemFont] text-white">
+      <div class="absolute inset-0 bg-black/45"></div>
+      <div class="glass relative w-[90%] max-w-sm rounded-3xl p-8 z-10">
+        {inner}
+      </div>
+    </body>
+    </html>
+    """
 
 # Routes
 @app.get("/", response_class=HTMLResponse)
@@ -145,142 +182,47 @@ from fastapi.responses import HTMLResponse
 @app.get("/unsubscribe", response_class=HTMLResponse)
 def unsubscribe_confirm(token: Optional[str] = None):
     if not token:
-        # Token missing → show same UI but with error message
-        return f"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>Invalid Unsubscribe Link</title>
-          <script src="https://cdn.tailwindcss.com"></script>
-          <style>
-            html,body{{height:100%;}}
-            .glass {{
-              background: rgba(0,0,0,0.35);
-              backdrop-filter: blur(20px);
-              -webkit-backdrop-filter: blur(20px);
-              border: 1px solid rgba(255,255,255,0.15);
-              box-shadow: 0 24px 48px rgba(0,0,0,0.4);
-            }}
-            .hero-bg {{
-              background-image: url('/static/dining_hall.jpg');
-              background-size: cover;
-              background-position: center;
-              background-repeat: no-repeat;
-              min-height: 100%;
-              background-color: #000; /* fallback color */
-            }}
-          </style>
-        </head>
-        <body class="hero-bg relative min-h-screen w-full flex items-center justify-center font-[system-ui,Inter,-apple-system,BlinkMacSystemFont] text-white">
-          <div class="absolute inset-0 bg-black/45"></div>
-          <div class="glass relative w-[90%] max-w-sm rounded-3xl p-8 z-10">
-            <h1 class="text-3xl font-semibold text-center mb-6">Invalid Link</h1>
-            <p class="text-center text-white/80 text-sm mb-6">
-              The unsubscribe link is missing or invalid. Please check your email for the correct link.
-            </p>
-            <p class="text-center text-sm mt-6">
-              <a href="/" class="text-white/60 underline">Back to homepage</a>
-            </p>
-          </div>
-        </body>
-        </html>
-        """
+      # Token missing → show same UI but with error message
+      return wrap_page(f"""
+      <h1 class="text-3xl font-semibold text-center mb-6">Invalid Link</h1>
+      <p class="text-center text-white/80 text-sm mb-6">
+        The unsubscribe link is missing or invalid. Please check your email for the correct link.
+      </p>
+      <p class="text-center text-sm mt-6">
+        <a href="/" class="text-white/60 underline">Back to homepage</a>
+      </p>
+      """, title="Invalid Unsubscribe Link")
 
     # Token exists → show normal unsubscribe form
-    return f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>Unsubscribe</title>
-      <script src="https://cdn.tailwindcss.com"></script>
-      <style>
-        html,body{{height:100%;}}
-        .glass {{
-          background: rgba(0,0,0,0.35);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,255,255,0.15);
-          box-shadow: 0 24px 48px rgba(0,0,0,0.4);
-        }}
-        .hero-bg {{
-          background-image: url('/static/dining_hall.jpg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          min-height: 100%;
-          background-color: #000; /* fallback color */
-        }}
-      </style>
-    </head>
-    <body class="hero-bg relative min-h-screen w-full flex items-center justify-center font-[system-ui,Inter,-apple-system,BlinkMacSystemFont] text-white">
-      <div class="absolute inset-0 bg-black/45"></div>
-      <div class="glass relative w-[90%] max-w-sm rounded-3xl p-8 z-10">
-        <h1 class="text-3xl font-semibold text-center mb-6">Unsubscribe?</h1>
-        <p class="text-center text-white/80 text-sm mb-6">
-          Do you want to stop receiving SFU's daily menu emails?
-        </p>
-        <form action="/unsubscribe_confirm" method="post" class="flex flex-col items-center">
-          <input type="hidden" name="token" value="{token}">
-          <button type="submit" class="bg-white/90 text-black rounded-xl px-6 py-3 text-sm font-medium hover:bg-white transition">
-            Yes, unsubscribe me
-          </button>
-        </form>
-        <p class="text-center text-sm mt-6">
-          <a href="/" class="text-white/60 underline">Cancel</a>
-        </p>
-      </div>
-    </body>
-    </html>
-    """
+    return wrap_page(f"""
+    <h1 class="text-3xl font-semibold text-center mb-6">Unsubscribe?</h1>
+    <p class="text-center text-white/80 text-sm mb-6">
+      Do you want to stop receiving SFU's daily menu emails?
+    </p>
+    <form action="/unsubscribe_confirm" method="post" class="flex flex-col items-center">
+      <input type="hidden" name="token" value="{token}">
+      <button type="submit" class="bg-white/90 text-black rounded-xl px-6 py-3 text-sm font-medium hover:bg-white transition">
+        Yes, unsubscribe me
+      </button>
+    </form>
+    <p class="text-center text-sm mt-6">
+      <a href="/" class="text-white/60 underline">Cancel</a>
+    </p>
+    """, title="Unsubscribe")
 
 @app.post("/unsubscribe_confirm", response_class=HTMLResponse)
 def unsubscribe_do(token: str = Form(...)):
     supabase.table("subscribers").update({"active": False}).eq("token", token).execute()
-    return """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>Unsubscribed</title>
-      <script src="https://cdn.tailwindcss.com"></script>
-      <style>
-        html,body{height:100%;}
-        .glass {
-          background: rgba(0,0,0,0.35);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,255,255,0.15);
-          box-shadow: 0 24px 48px rgba(0,0,0,0.4);
-        }
-        .hero-bg {
-          background-image: url('/static/dining_hall.jpg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          min-height: 100%;
-          background-color: #000; /* fallback color */
-        }
-      </style>
-    </head>
-    <body class="hero-bg relative min-h-screen w-full flex items-center justify-center font-[system-ui,Inter,-apple-system,BlinkMacSystemFont] text-white">
-      <div class="absolute inset-0 bg-black/45"></div>
-      <div class="glass relative w-[90%] max-w-sm rounded-3xl p-8 z-10">
-        <h1 class="text-3xl font-semibold text-center mb-6">You're unsubscribed</h1>
-        <p class="text-center text-white/80 text-sm leading-relaxed mb-6">
-          You will no longer receive daily menus.
-        </p>
-        <p class="text-center text-sm">
-          <a href="/" class="text-white/60 underline">Resubscribe</a>
-        </p>
-      </div>
-    </body>
-    </html>
-    """
+    return wrap_page("""
+    <h1 class="text-3xl font-semibold text-center mb-6">You're unsubscribed</h1>
+    <p class="text-center text-white/80 text-sm leading-relaxed mb-6">
+      You will no longer receive daily menus.
+    </p>
+    <p class="text-center text-sm">
+      <a href="/" class="text-white/60 underline">Resubscribe</a>
+    </p>
+    """, title="Unsubscribed")
+
 
 @app.post("/subscribe")
 def subscribe(email: str = Form(...)):
