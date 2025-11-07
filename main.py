@@ -233,10 +233,13 @@ def subscribe(email: str = Form(...)):
 
     t = token_hex(16)
 
-    supabase.table("subscribers").upsert({
-        "email": email,
-        "token": t,
-        "active": True
-    }).execute()
+    supabase.table("subscribers").upsert(
+        {
+            "email": email,
+            "token": t,
+            "active": True
+        },
+        on_conflict="email"
+    ).execute()
 
     return {"ok": True}
