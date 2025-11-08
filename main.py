@@ -43,6 +43,7 @@ def wrap_page(inner: str, title: str = "DiningBot"):
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>{title}</title>
+      <link rel="icon" type="image/png" href="/static/logo.png" />
       <script src="https://cdn.tailwindcss.com"></script>
       <style>
         html,body{{height:100%; background-color:#000;}}
@@ -81,7 +82,8 @@ def subscribe_page():
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>DiningBot Daily</title>
+      <title>SFU Daily Menu</title>
+      <link rel="icon" type="image/png" href="/static/logo.png" />
       <script src="https://cdn.tailwindcss.com"></script>
       <style>
         html,body{height:100%; background-color: #000;}
