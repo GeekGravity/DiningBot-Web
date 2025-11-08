@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from pydantic import EmailStr, ValidationError, BaseModel
 from supabase import create_client
+import httpx
 
 
 # FastAPI setup
@@ -17,6 +18,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Supabase setup
 load_dotenv()
+GH_PAT = os.environ["GH_PAT"]
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_ANON_KEY = os.environ["SUPABASE_ANON_KEY"]
 supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -241,5 +243,20 @@ def subscribe(email: str = Form(...)):
         },
         on_conflict="email"
     ).execute()
+
+    workflow_url = f"https://api.github.com/repos/GeekGravity/Dining-Emailer/actions/workflows/subscribe.yml/dispatches"
+
+    httpx.post(
+        workflow_url,
+        headers={
+            "Authorization": f"Bearer {GH_PAT}",
+            "Accept": "application/vnd.github+json"
+        },
+        json={
+            "ref": "main",
+            "inputs": {"email": email}
+        },
+        timeout=10
+    )
 
     return {"ok": True}
